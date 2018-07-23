@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>ytSync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.dev.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+    <link rel="stylesheet" href="https://bootswatch.com/4/sketchy/bootstrap.min.css" />
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">ytSync</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor03" aria-controls="navbarColor03" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- <div class="collapse navbar-collapse" id="navbarColor03">
+              <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Features</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Pricing</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">About</a>
+                </li>
+              </ul>
+              <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" placeholder="Search" type="text">
+                <button class="btn btn-secondary my-2 my-sm-0" type="submit">Search</button>
+              </form>
+            </div> -->
+        </nav>
+
+        <!-- You Tube Iframe -->
+        <div id="player">
+            <script>
+                function progressBarLoop() {
+              var progressBar = $("#bar-line");
+              var progressSquare = $("#bar-box");
+              progressBar.click(function() {
+                  var divOffset = $(this).offset();
+              });
+              setInterval(function() {
+                  if (player == null || progressBar == null) {
+                  return;
+                }
+                console.log(player.getCurrentTime());
+                var fraction = (player.getCurrentTime() / player.getDuration() * 100);
+                progressSquare.css("margin-left", fraction.toString() + "%");
+            }, 200);
+        }
+
+        // 2. This code loads the IFrame Player API code asynchronously.
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // 3. This function creates an <iframe> (and YouTube player)
+            //    after the API code downloads.
+            var player;
+            function onYouTubeIframeAPIReady() {
+                player = new YT.Player('player', {
+                    height: '720',
+                    width: '1080',
+                    videoId: '6Vnwb92VF64',
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    },
+                    playerVars: {
+                        'controls': 0,
+                        'disablekb': 1,
+                        'modestbranding': 0,
+                        'rel': 0,
+                        'showinfo': 0
+                    }
+                });
+            }
+
+            // 4. The API will call this function when the video player is ready.
+            function onPlayerReady(event) {
+                event.target.playVideo();
+            }
+
+            // 5. The API calls this function when the player's state changes.
+            //    The function indicates that when playing a video (state=1),
+            //    the player should play for six seconds and then stop.
+            var done = false;
+            function onPlayerStateChange(event) {
+                console.log(event.data)
+              if (event.data == YT.PlayerState.PLAYING && !done) {
+                  setTimeout(stopVideo, 6000);
+                done = true;
+            }
+        }
+        function stopVideo() {
+            player.stopVideo();
+        }
+    </script>
+    </div>
+
+        <div id="player-controls">
+            <button id="play-btn" type="button" class="btn btn-default btn-lg" onclick="playButton()">
+                <span class="glyphicon glyphicon-play-circle" aria-hidden="true">Play</span>
+            </button>
+            <button id="pause-btn" type="button" class="btn btn-default btn-lg" onclick="pauseButton()">
+                <span class="glyphicon glyphicon-pause" aria-hidden="true">Pause</span>
+            </button>
+            <div id="progress-bar">
+                <div id="bar-line"></div>
+                <div id="bar-box"></div>
+            </div>
+        </div>
+    </div>
+        <!-- Sockets.io entry point -->
+<script>
+    var socket = io();
+
+    //Creating Events
+    function playButton() {
+        player.playVideo();
+        btn = document.getElementById('play-btn');
+            btn.addEventListener('click', function() {
+                socket.emit('play');
+            });
+        }
+
+        function pauseButton() {
+            player.pauseVideo();
+            btn = document.getElementById('pause-btn');
+            btn.addEventListener('click', function() {
+                socket.emit('pause');
+            });
+        }
+
+        //Listening for events
+        socket.on('play', function() {
+            player.playVideo();
+        });
+
+        socket.on('pause', function() {
+            player.pauseVideo();
+        });
+    </script>
+</body>
+</html>
